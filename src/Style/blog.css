@@ -54,3 +54,14 @@
 .blog-list h3{
     border-bottom: 2px solid gray;
 }
+.content{
+    display: flex;
+    justify-content: space-between;
+   
+}
+.del{
+    font-size: 0.8rem;
+    padding: 1%;
+    height: 70%;
+    background-color: rgb(228, 57, 57);
+}
