@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect, useReducer } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import '../Style/blog.css'
 import { db } from "../firebaseInit"
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, onSnapshot, deleteDoc } from "firebase/firestore";
+
+
 
 
 
@@ -24,14 +26,44 @@ export default function BlogPage() {
     // const [title, setTitle] = useState('')
     // const [content, setContent]= useState('')
     const [formData, setFormData] = useState({ title: "", content: "" })
-    // const [blogs, setBlogs] = useState([]);
-    const [blogs, dispatch] = useReducer(blogsReducer, []);
+    const [blogs, setBlogs] = useState([]);
+    // const [blogs, dispatch] = useReducer(blogsReducer, []);
 
     const titleRef = useRef(null)
     // titleRef.current.focus();
 
+
     useEffect(() => {
         titleRef.current.focus();
+
+
+    }, [])
+
+    useEffect(() => {
+        // async function fetchData(){
+        //     const snapShot = await getDocs(collection(db,'blogs'))
+        //     // console.log(snapShot);
+        //     const blogs = snapShot.docs.map((doc)=>{
+        //         return{
+        //             id:doc.id,
+        //             ...doc.data()
+        //         }
+        //     })
+        //     console.log(blogs);
+        //     setBlogs(blogs)
+        // }
+        // fetchData()
+
+        const unsub = onSnapshot(collection(db, 'blogs'), (snapShot) => {
+            const blogs = snapShot.docs.map((doc) => {
+                return {
+                    id: doc.id,
+                    ...doc.data()
+                }
+            })
+            console.log(blogs);
+            setBlogs(blogs)
+        })
     }, [])
 
     // Update the title to newest title when press add button
@@ -52,7 +84,7 @@ export default function BlogPage() {
         titleRef.current.focus();
 
         // Add a new document with a generated id.
-       await addDoc(collection(db, "blogs"), {
+        await addDoc(collection(db, "blogs"), {
             title: formData.title,
             content: formData.content,
             createdAt: new Date()
@@ -60,20 +92,23 @@ export default function BlogPage() {
         // console.log("Document written with ID: ", docRef.id);
 
 
-        const newBlog = { title: formData.title, content: formData.content };
+        // const newBlog = { title: formData.title, content: formData.content };
 
         // Update the blogs state by adding the new blog to the beginning of the array
         // setBlogs([newBlog, ...blogs]);
-        dispatch({ type: "ADD", blog: newBlog })
-        setFormData({ title: "", content: "" });
+        // dispatch({ type: "ADD", blog: newBlog })
+        // setFormData({ title: "", content: "" });
 
 
     }
 
-    function removeBlog(i) {
+    async function  removeBlog(id) {
         // setBlogs(blogs.filter((blog, index) => i !== index))
-        dispatch({ type: "REMOVE", index: i })
-        titleRef.current.focus();
+        // dispatch({ type: "REMOVE", index: i })
+        // titleRef.current.focus();
+
+        const docRef = doc(db,"blogs",id)
+        await deleteDoc(docRef)
     }
 
     return (
@@ -105,7 +140,7 @@ export default function BlogPage() {
                                 <div className='content'>
                                     <p> {blog.content} </p>
 
-                                    <button className='del' onClick={() => removeBlog(i)}>Delete</button>
+                                    <button className='del' onClick={() => removeBlog(blog.id)}>Delete</button>
                                 </div>
                             </div>
                         ))}
